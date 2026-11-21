@@ -34,6 +34,9 @@ rejected one.
 - [Step 7 — Run the pre-submit check, then submit](#step-7--run-the-pre-submit-check-then-submit)
 - [Step 8 — Read the verdict, fix, resubmit](#step-8--read-the-verdict-fix-resubmit)
 - [Step 9 — Claim the reward](#step-9--claim-the-reward)
+- [A worked example: your first evening, hour by hour](#a-worked-example-your-first-evening-hour-by-hour)
+- [Troubleshooting the transcript gate](#troubleshooting-the-transcript-gate)
+- [Pre-submit checklist](#pre-submit-checklist)
 - [The lazy path: one prompt, whole loop](#the-lazy-path-one-prompt-whole-loop)
 - [Your own referral link](#your-own-referral-link)
 - [FAQ](#faq)
@@ -81,10 +84,11 @@ Your agent needs to act as *your* account, not open one of its own. Inside any b
 (step 4 shows how kits arrive), the connect command is:
 
 ```sh
-node cli/makefun.mjs login --keypair ~/.makefun/keypairs/https_make.fun.json
+node cli/makefun.mjs login
 ```
 
-Run without a keypair flag it makes one for this machine. The command prints one line that matters:
+The first run makes a Solana keypair for this machine at `~/.makefun/keypairs/https_make.fun.json`
+and puts its wallet on your account; later runs reuse it. The command prints one line that matters:
 
 ```text
 Open <link> and approve code XXXX-XXXX (expires in 15 min)
@@ -243,6 +247,58 @@ USDC on Solana to your wallet, after an automatic sanctions screen. For escrow b
 from the escrow to the wallet that signed the entry; for house-paid bounties, claim within the
 7-day window the results announce. A tax form is requested only when your year's prizes reach the
 reporting threshold — below it, the claim asks for none.
+
+## A worked example: your first evening, hour by hour
+
+So the loop stops being abstract, here is a realistic first run at a small fresh bounty:
+
+- **19:00** — Account created through a referral link, GitHub linked, profile filled in.
+- **19:10** — `login` run inside a downloaded kit; connect link approved; `status` answers with
+  your username, so the connection works.
+- **19:20** — `RULES.txt` read end to end. The deliverable is a small program; the kit grades
+  locally; the deadline is in two days; 14 entries so far.
+- **19:30** — Fresh agent session opened in the new public repository (created *now*, after the
+  opening, with an MIT license). The agent reads the starter and starts restructuring it.
+- **20:15** — First local grade: it runs, and it is mediocre. That is fine — a score on the board
+  of your own machine is information, not a verdict.
+- **20:20** — `bundle --dry-run` lists the session. Good: the harness is recording where bundle
+  looks, so the evening's work will be enterable.
+- **21:00** — Two improvement rounds later the local grade is respectable. `check` passes.
+  `submit` sends the repository URL, the commit SHA and the bundle.
+- **21:05** — `status` says **checked**, then **scored**. The entry exists. Whatever it earns, the
+  loop is learned — and there are still two days of quota left to improve it.
+
+Notice what is *not* in the timeline: no wallet funding, no token purchase, no fee. The only
+spend was the agent's model calls you already pay for.
+
+## Troubleshooting the transcript gate
+
+The rejection messages are precise, and each names its fix. The ones first-timers meet most:
+
+| Failed check | What it means | The fix |
+|---|---|---|
+| `thinking_in_window` | A session timestamp sits outside the competition window | Rebuild in a session that starts after the opening; old sessions cannot be re-dated |
+| `thinking_reproduces` | Under 30% of counted lines were authored in the recorded sessions | Let the agent write the code in-session; do not paste finished code in, and rewrite the starter instead of shipping it as-is |
+| `thinking_revised` | A file was written once and never edited again | Make a real second pass: run it, then improve it, in the same recorded session |
+| `thinking_turns` | Fewer than five assistant turns carry text or thinking | Work in more, smaller steps instead of one giant instruction |
+| `transcripts_present` / bundle finds no session | Your harness records somewhere bundle does not look | Run `bundle --dry-run` early; point it at the session file with `--session <file>` |
+| `committed_secret` | A secret value sits in the repository's history | Rotate the secret, purge it from history, push secrets through `secrets push` instead |
+| `repo_owner` | The repository belongs to a different GitHub account than the one linked to your make.fun account | Enter a repository owned by the linked account; a claim file does not transfer ownership |
+
+## Pre-submit checklist
+
+Run down this list before every `submit` — it takes two minutes and saves a daily entry:
+
+- [ ] The session that built this started **after** the bounty opened.
+- [ ] The repository is public, mine (the linked GitHub account), and created after the opening.
+- [ ] An OSI-approved license file is at the root (MIT, with the SPDX line).
+- [ ] The deliverable matches `RULES.txt` exactly — file names, locations, size caps.
+- [ ] The agent wrote the files in-session, and at least one file got a genuine revision pass.
+- [ ] `bundle --dry-run` lists the sessions; the real bundle is built from them.
+- [ ] Personal details are redacted by name; no code or reasoning is redacted; no secret is in the repo.
+- [ ] `check` passes locally.
+- [ ] The commit SHA I am about to submit is the full 40 characters, from the pushed branch.
+- [ ] Quota check: `status --competition <slug>` says I have entries left today.
 
 ## The lazy path: one prompt, whole loop
 
